@@ -1,0 +1,1 @@
+export { AssistantsTab } from './AssistantsTab';
