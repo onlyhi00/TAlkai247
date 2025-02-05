@@ -3,18 +3,6 @@ import axios from "axios";
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
-const userToken = (): string => {
-  return localStorage.getItem("token") || "";
-};
-
-// Create an axiosInstance instance with default headers
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    Authorization: `Bearer ${userToken()}`,
-  },
-});
-
 // Assistant types
 export interface Assistant {
   id: string;
@@ -52,6 +40,7 @@ export interface ApiResponse<T> {
 export interface LiveKitToken {
   success: boolean;
   data: string;
+  roomName: string;
 }
 
 // Assistant API endpoints
@@ -59,7 +48,11 @@ export const assistantApi = {
   // Get all assistants
   getAll: async (): Promise<ApiResponse<Assistant[]>> => {
     try {
-      const response = await axiosInstance.get(`${API_BASE_URL}/assistants`);
+      const response = await axios.get(`${API_BASE_URL}/assistants`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching assistants:", error);
@@ -70,9 +63,11 @@ export const assistantApi = {
   // Get single assistant
   getById: async (id: string): Promise<ApiResponse<Assistant>> => {
     try {
-      const response = await axiosInstance.get(
-        `${API_BASE_URL}/assistants/${id}`
-      );
+      const response = await axios.get(`${API_BASE_URL}/assistants/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching assistant:", error);
@@ -85,9 +80,14 @@ export const assistantApi = {
     assistant: Omit<Assistant, "id" | "createdAt" | "updatedAt">
   ): Promise<ApiResponse<Assistant>> => {
     try {
-      const response = await axiosInstance.post(
+      const response = await axios.post(
         `${API_BASE_URL}/assistants`,
-        assistant
+        assistant,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -102,9 +102,14 @@ export const assistantApi = {
     assistant: Partial<Assistant>
   ): Promise<ApiResponse<Assistant>> => {
     try {
-      const response = await axiosInstance.put(
+      const response = await axios.put(
         `${API_BASE_URL}/assistants/${id}`,
-        assistant
+        assistant,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -116,9 +121,11 @@ export const assistantApi = {
   // Delete assistant
   delete: async (id: string): Promise<ApiResponse<void>> => {
     try {
-      const response = await axiosInstance.delete(
-        `${API_BASE_URL}/assistants/${id}`
-      );
+      const response = await axios.delete(`${API_BASE_URL}/assistants/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error deleting assistant:", error);
@@ -134,9 +141,14 @@ export const liveKitApi = {
     assistantName: string
   ): Promise<ApiResponse<LiveKitToken>> => {
     try {
-      const response = await axiosInstance.post(
+      const response = await axios.post(
         `${API_BASE_URL}/livekit/getToken`,
-        assistantName
+        assistantName,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {

@@ -17,6 +17,7 @@ router.post("/getToken", authenticate, async (req, res) => {
   const { assistantName } = req.body;
   const participantName = req.user.name;
   const roomName = `room-${participantName}-${assistantName}`;
+
   try {
     const at = new AccessToken(LiveKit_API, LiveKit_SECRET, {
       identity: participantName,
@@ -25,7 +26,7 @@ router.post("/getToken", authenticate, async (req, res) => {
     at.addGrant({ roomJoin: true, room: roomName });
 
     const token = await at.toJwt();
-    res.json({ success: true, data: token });
+    res.json({ success: true, data: token, roomName });
   } catch (error) {
     console.error("LiveKit Get Token: ", error);
     res.status(500).json({

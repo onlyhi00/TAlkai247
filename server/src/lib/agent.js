@@ -1,40 +1,67 @@
-// aiAgent.js
 import {
+  AutoSubscribe,
+  WorkerOptions,
+  cli,
+  defineAgent,
   llm,
   pipeline,
-} from '@livekit/agents';
-import * as deepgram from '@livekit/agents-plugin-deepgram';
-import * as openai from '@livekit/agents-plugin-openai';
-import * as silero from '@livekit/agents-plugin-silero';
+} from "@livekit/agents";
+import * as deepgram from "@livekit/agents-plugin-deepgram";
+import * as openai from "@livekit/agents-plugin-openai";
+import * as silero from "@livekit/agents-plugin-silero";
+import { fileURLToPath } from "node:url";
+import { z } from "zod";
 
-// Function to initialize the AI agent
-async function initializeAgent(ctx, participant) {
-  const initialContext = new llm.ChatContext().append({
-    role: llm.ChatRole.SYSTEM,
-    text: 'You are a helpful voice assistant. How can I assist you today?'
-  });
+export default defineAgent({
+  prewarm: async (proc) => {
+    proc.userData.vad = await silero.VAD.load();
+  },
+  entry: async (ctx) => {
+    const vad = ctx.proc.userData.vad;
+    const initialContext = new llm.ChatContext().append({
+      role: llm.ChatRole.SYSTEM,
+      text:
+        "You are a voice assistant created by LiveKit. Your interface with users will be voice. " +
+        "You should use short and concise responses, and avoiding usage of unpronounceable " +
+        "punctuation.",
+    });
 
-  const agent = new pipeline.VoicePipelineAgent(
-    await silero.VAD.load(),
-    new deepgram.STT({ model: 'nova-2-general' }),
-    new openai.LLM({ model: 'gpt-4o' }), // Specify your OpenAI model here
-    new openai.TTS(), // Use OpenAI for Text-to-Speech
-    {
-      chatCtx: initialContext,
-      allowInterruptions: true,
-      interruptSpeechDuration: 500,
-      interruptMinWords: 0,
-      minEndpointingDelay: 500,
-      beforeLLMCallback: async (transcript) => {
-        console.log('Transcribed Text:', transcript);
+    await ctx.connect(undefined, AutoSubscribe.AUDIO_ONLY);
+    console.log("waiting for participant connection...");
+    const participant = await ctx.waitForParticipant();
+    console.log(`starting assistant example agent for ${participant.identity}`);
+
+    const fncCtx = {
+      weather: {
+        description: "Get the weather in a location",
+        parameters: z.object({
+          location: z.string().describe("The location to get the weather for"),
+        }),
+        execute: async ({ location }) => {
+          console.debug(`executing weather function for ${location}`);
+          const response = await fetch(
+            `https://wttr.in/${location}?format=%C+%t`
+          );
+          if (!response.ok) {
+            throw new Error(`Weather API returned status ${response.status}`);
+          }
+          const weather = await response.text();
+          return `The weather in ${location} is ${weather}.`;
+        },
       },
-      beforeTTSCallback: undefined,
-    },
-  );
+    };
 
-  // Start the agent for a particular room
-  agent.start(ctx.room, participant);
-}
+    const agent = new pipeline.VoicePipelineAgent(
+      vad,
+      new deepgram.STT(),
+      new openai.LLM(),
+      new openai.TTS(),
+      { chatCtx: initialContext, fncCtx }
+    );
+    agent.start(ctx.room, participant);
 
-// Export the function to use in your application
-export default initializeAgent;
+    await agent.say("Hey, how can I help you today", true);
+  },
+});
+
+// cli.runApp(new WorkerOptions({ agent: fileURLToPath(import.meta.url) }));

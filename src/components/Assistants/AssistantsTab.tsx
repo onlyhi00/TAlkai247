@@ -38,32 +38,33 @@ export default function AssistantsTab() {
   );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchAssistants = async () => {
-      try {
-        const response = await assistantApi.getAll();
-        if (response.success && response.data) {
-          setAssistants(response.data);
-          console.log("assistants =====> ", response.data);          
-        } else {
-          throw new Error(
-            response.error?.message || "Failed to fetch assistants"
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching assistants:", error);
-        toast({
-          title: "Error",
-          description:
-            error instanceof Error
-              ? error.message
-              : "Failed to fetch assistants",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+  const fetchAssistants = async () => {
+    try {
+      const response = await assistantApi.getAll();
+      console.log(response);
+      
+      if (response.success && response.data) {
+        setAssistants(response.data);
+      } else {
+        throw new Error(
+          response.error?.message || "Failed to fetch assistants"
+        );
       }
-    };
+    } catch (error) {
+      console.error("Error fetching assistants:", error);
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch assistants",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
 
     fetchAssistants();
   }, [toast]);

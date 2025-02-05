@@ -143,10 +143,21 @@ export default function AssistantCard({
       });
 
       // TODO;
-      const response = await liveKitApi.getToken(assistant.name);
-      console.log(response);
-      
 
+      const wsUrl = import.meta.env.VITE_LIVEKIT_URL;
+      const response = await liveKitApi.getToken(assistant.name);
+
+      const token = await response.data;
+      const roomName = response.roomName;
+
+      const room = new Room();
+
+      await room.connect(wsUrl, token, { roomName: roomName });
+
+      setRoom(room);
+
+      console.log(room);
+      
     } else {
       // End call
       room?.disconnect();
