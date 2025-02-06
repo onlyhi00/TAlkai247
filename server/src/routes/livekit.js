@@ -3,7 +3,6 @@ import { Router } from "express";
 import dotenv from "dotenv";
 import { prisma } from "../lib/prisma.js";
 import { authenticate } from "../middleware/auth.js";
-import initializeAgent from "../lib/agent.js";
 
 dotenv.config();
 
@@ -23,7 +22,7 @@ router.post("/getToken", authenticate, async (req, res) => {
       identity: participantName,
       ttl: "10m",
     });
-    at.addGrant({ roomJoin: true, room: roomName });
+    at.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true });
 
     const token = await at.toJwt();
     res.json({ success: true, data: token, roomName });

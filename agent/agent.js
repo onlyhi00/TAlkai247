@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 LiveKit, Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
 import {
   AutoSubscribe,
   WorkerOptions,
@@ -27,9 +30,9 @@ export default defineAgent({
     });
 
     await ctx.connect(undefined, AutoSubscribe.AUDIO_ONLY);
-    console.log("waiting for participant connection...");
+    console.log("waiting for participant");
     const participant = await ctx.waitForParticipant();
-    console.log(`starting assistant example agent for ${participant.identity}`);
+    console.log(`starting assistant example agent for ${participant.identity}`); 
 
     const fncCtx = {
       weather: {
@@ -43,10 +46,10 @@ export default defineAgent({
             `https://wttr.in/${location}?format=%C+%t`
           );
           if (!response.ok) {
-            throw new Error(`Weather API returned status ${response.status}`);
+            throw new Error(`Weather API returned status: ${response.status}`);
           }
           const weather = await response.text();
-          return `The weather in ${location} is ${weather}.`;
+          return `The weather in ${location} right now is ${weather}.`;
         },
       },
     };
@@ -54,7 +57,11 @@ export default defineAgent({
     const agent = new pipeline.VoicePipelineAgent(
       vad,
       new deepgram.STT(),
-      new openai.LLM(),
+      new openai.LLM({
+        // apiKey: process.env.OPENROUTER_API_KEY, // Make sure to set this environment variable
+        // baseUrl: "https://openrouter.ai/api/v1",
+        // model: "openai/o3-mini", // Or another model supported by OpenRouter
+      }),
       new openai.TTS(),
       { chatCtx: initialContext, fncCtx }
     );
@@ -64,4 +71,4 @@ export default defineAgent({
   },
 });
 
-// cli.runApp(new WorkerOptions({ agent: fileURLToPath(import.meta.url) }));
+cli.runApp(new WorkerOptions({ agent: fileURLToPath(import.meta.url) }));

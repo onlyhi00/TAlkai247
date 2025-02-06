@@ -143,7 +143,7 @@ export const liveKitApi = {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/livekit/getToken`,
-        assistantName,
+        { assistantName },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -22,7 +22,6 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const app = express();
 const port = process.env.PORT || 3000;
-
 // Configure CORS to be more permissive during development
 const corsOptions = {
   origin: function (origin, callback) {
