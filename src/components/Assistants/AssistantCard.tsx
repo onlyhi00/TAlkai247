@@ -152,7 +152,23 @@ export default function AssistantCard({
 
       const room = new Room();
 
-      await room.connect(wsUrl, token, { roomName: roomName });
+      await room.connect(wsUrl, token, { roomName: roomName, audio: true, video: true });
+
+      room.on("participantConnected", (participant) => {
+        console.log("Participant connected:", participant.identity);
+      });
+
+      room.on("participantDisconnected", (participant) => {
+        console.log("Participant disconnected:", participant.identity);
+      });
+
+      room.on("trackAdded", (track) => {
+        console.log("Track added:", track);
+      });
+
+      room.on("trackRemoved", (track) => {
+        console.log("Track removed:", track);
+      });
 
       setRoom(room);
 
