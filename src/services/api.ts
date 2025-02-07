@@ -138,12 +138,12 @@ export const assistantApi = {
 export const liveKitApi = {
   // Create LiveKit room
   getToken: async (
-    assistantName: string
+    assistantId: string
   ): Promise<ApiResponse<LiveKitToken>> => {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/livekit/getToken`,
-        { assistantName },
+        { assistantId },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

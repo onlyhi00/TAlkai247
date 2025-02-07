@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import AssistantCard from "./AssistantCard";
@@ -41,8 +41,6 @@ export default function AssistantsTab() {
   const fetchAssistants = async () => {
     try {
       const response = await assistantApi.getAll();
-      console.log(response);
-      
       if (response.success && response.data) {
         setAssistants(response.data);
       } else {
@@ -55,9 +53,7 @@ export default function AssistantsTab() {
       toast({
         title: "Error",
         description:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch assistants",
+          error instanceof Error ? error.message : "Failed to fetch assistants",
         variant: "destructive",
       });
     } finally {
@@ -65,7 +61,6 @@ export default function AssistantsTab() {
     }
   };
   useEffect(() => {
-
     fetchAssistants();
   }, [toast]);
 

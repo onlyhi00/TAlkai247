@@ -46,7 +46,13 @@ import { openRouterApi, Model } from "@/lib/api/openrouter";
 import { Voice } from "@/components/VoiceLibrary/types";
 import ModelSelectionCard from "@/components/LLM/ModelSelectionCard";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { Room } from "livekit-client";
+import { Room, RoomEvent } from "livekit-client";
+import {
+  LiveKitRoom,
+  RoomAudioRenderer,
+  StartAudio,
+} from "@livekit/components-react";
+import { AgentProvider } from "@/hooks/useAgent";
 
 interface Assistant {
   id: string;
@@ -101,6 +107,10 @@ export default function AssistantCard({
   const [isLoadingVoices, setIsLoadingVoices] = useState(false);
 
   const [room, setRoom] = useState<Room | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [roomName, setRoomName] = useState<string | null>(null);
+
+  const wsUrl = import.meta.env.VITE_LIVEKIT_URL;
 
   const toggleVoiceInput = () => {
     setIsListening(!isListening);
@@ -133,7 +143,6 @@ export default function AssistantCard({
   };
 
   const toggleCall = async () => {
-    setIsInCall(!isInCall);
     if (!isInCall) {
       // Start call
       setTranscript([]);
@@ -144,38 +153,36 @@ export default function AssistantCard({
 
       // TODO;
 
-      const wsUrl = import.meta.env.VITE_LIVEKIT_URL;
-      const response = await liveKitApi.getToken(assistant.name);
+      const data = await liveKitApi.getToken(assistant.id);
 
-      const token = await response.data;
-      const roomName = response.roomName;
+      const token = data.token;
+      const roomName = data.roomName;
+      await setAccessToken(token);
+      await setRoomName(roomName);
 
       const room = new Room();
 
-      await room.connect(wsUrl, token, { roomName: roomName, audio: true, video: true });
+      await room.connect(wsUrl, token, { roomName: roomName });
 
-      room.on("participantConnected", (participant) => {
+      room.on(RoomEvent.ParticipantConnected, (participant) => {
         console.log("Participant connected:", participant.identity);
       });
 
-      room.on("participantDisconnected", (participant) => {
+      room.on(RoomEvent.ParticipantDisconnected, (participant) => {
         console.log("Participant disconnected:", participant.identity);
       });
 
-      room.on("trackAdded", (track) => {
-        console.log("Track added:", track);
-      });
-
-      room.on("trackRemoved", (track) => {
-        console.log("Track removed:", track);
+      room.on(RoomEvent.ChatMessage, (message, participant) => {
+        console.log("Chat message:", message);
+        console.log("Participant:", participant);
       });
 
       setRoom(room);
-
-      console.log(room);
-      
+      console.log("Room connected", room);
+      setIsInCall(!isInCall);
     } else {
       // End call
+      setIsInCall(!isInCall);
       room?.disconnect();
       setTranscript([]);
       toast({
@@ -1108,32 +1115,52 @@ export default function AssistantCard({
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {transcript.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg ${
-                          message.role === "user"
-                            ? "bg-blue-500/20 ml-12"
-                            : "bg-gray-700/50 mr-12"
-                        }`}
+
+                  // TODO: 
+                  isInCall && (
+                    <>
+                      <LiveKitRoom
+                        serverUrl={wsUrl}
+                        token={accessToken || ""}
+                        connect={true}
+                        audio={true}
+                        options={{
+                          publishDefaults: { stopMicTrackOnMute: true },
+                        }}
                       >
-                        <div className="flex items-center gap-2 mb-2">
+                        <AgentProvider>
+                          <RoomAudioRenderer />
+                          <StartAudio label="Click to allow audio playback." />
+                        </AgentProvider>
+                      </LiveKitRoom>
+                      <div className="space-y-4">
+                        {transcript.map((message, index) => (
                           <div
-                            className={`w-2 h-2 rounded-full ${
+                            key={index}
+                            className={`p-4 rounded-lg ${
                               message.role === "user"
-                                ? "bg-blue-400"
-                                : "bg-green-400"
+                                ? "bg-blue-500/20 ml-12"
+                                : "bg-gray-700/50 mr-12"
                             }`}
-                          />
-                          <span className="text-sm text-gray-400">
-                            {message.role === "user" ? "You" : "Assistant"}
-                          </span>
-                        </div>
-                        <p className="text-white">{message.content}</p>
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div
+                                className={`w-2 h-2 rounded-full ${
+                                  message.role === "user"
+                                    ? "bg-blue-400"
+                                    : "bg-green-400"
+                                }`}
+                              />
+                              <span className="text-sm text-gray-400">
+                                {message.role === "user" ? "You" : "Assistant"}
+                              </span>
+                            </div>
+                            <p className="text-white">{message.content}</p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )
                 )}
               </div>
 

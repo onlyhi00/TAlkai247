@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("token", data.data.token);
 
       // Store user data
-      // localStorage.setItem("user", JSON.stringify(data.data.user));
+      localStorage.setItem("user", JSON.stringify(data.data.user));
 
       navigate("/dashboard");
 

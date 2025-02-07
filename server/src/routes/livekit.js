@@ -13,19 +13,26 @@ const LiveKit_SECRET = process.env.LIVEKIT_API_SECRET;
 const LiveKit_wsUrl = process.env.LIVEKIT_SERVER_URL;
 
 router.post("/getToken", authenticate, async (req, res) => {
-  const { assistantName } = req.body;
-  const participantName = req.user.name;
-  const roomName = `room-${participantName}-${assistantName}`;
+  const { assistantId } = req.body;
+  const participantId = req.user.id;
+  const roomName = `room-${participantId}-${assistantId}`;
 
   try {
     const at = new AccessToken(LiveKit_API, LiveKit_SECRET, {
-      identity: participantName,
+      identity: participantId,
       ttl: "10m",
     });
-    at.addGrant({ roomJoin: true, room: roomName, canPublish: true, canSubscribe: true });
+    at.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,
+      canPublishData: true,
+      canSubscribe: true,
+      canUpdateOwnMetadata: true,
+    });
 
     const token = await at.toJwt();
-    res.json({ success: true, data: token, roomName });
+    res.json({ success: true, token, roomName });
   } catch (error) {
     console.error("LiveKit Get Token: ", error);
     res.status(500).json({

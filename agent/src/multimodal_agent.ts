@@ -1,11 +1,18 @@
 // SPDX-FileCopyrightText: 2024 LiveKit, Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
-import { type JobContext, WorkerOptions, cli, defineAgent, llm, multimodal } from '@livekit/agents';
-import * as openai from '@livekit/agents-plugin-openai';
-import { fileURLToPath } from 'node:url';
-import { z } from 'zod';
-import dotenv from 'dotenv';
+import {
+  type JobContext,
+  WorkerOptions,
+  cli,
+  defineAgent,
+  llm,
+  multimodal,
+} from "@livekit/agents";
+import * as openai from "@livekit/agents-plugin-openai";
+import { fileURLToPath } from "node:url";
+import { z } from "zod";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -13,7 +20,7 @@ export default defineAgent({
   entry: async (ctx: JobContext) => {
     await ctx.connect();
 
-    console.log('waiting for participant');
+    console.log("waiting for participant");
     const participant = await ctx.waitForParticipant();
     console.log(`starting assistant example agent for ${participant.identity}`);
 
@@ -22,26 +29,28 @@ export default defineAgent({
     if (process.env.AZURE_OPENAI_ENDPOINT) {
       model = openai.realtime.RealtimeModel.withAzure({
         baseURL: process.env.AZURE_OPENAI_ENDPOINT,
-        azureDeployment: process.env.AZURE_OPENAI_DEPLOYMENT || '',
+        azureDeployment: process.env.AZURE_OPENAI_DEPLOYMENT || "",
         apiKey: process.env.AZURE_OPENAI_API_KEY,
         entraToken: process.env.AZURE_OPENAI_ENTRA_TOKEN,
-        instructions: 'You are a helpful assistant.',
+        instructions: "You are a helpful assistant.",
       });
     } else {
       model = new openai.realtime.RealtimeModel({
-        instructions: 'You are a helpful assistant.',
+        instructions: "You are a helpful assistant.",
       });
     }
 
     const fncCtx: llm.FunctionContext = {
       weather: {
-        description: 'Get the weather in a location',
+        description: "Get the weather in a location",
         parameters: z.object({
-          location: z.string().describe('The location to get the weather for'),
+          location: z.string().describe("The location to get the weather for"),
         }),
         execute: async ({ location }) => {
           console.debug(`executing weather function for ${location}`);
-          const response = await fetch(`https://wttr.in/${location}?format=%C+%t`);
+          const response = await fetch(
+            `https://wttr.in/${location}?format=%C+%t`
+          );
           if (!response.ok) {
             throw new Error(`Weather API returned status: ${response.status}`);
           }
@@ -64,7 +73,7 @@ export default defineAgent({
       llm.ChatMessage.create({
         role: llm.ChatRole.USER,
         text: 'Say "How can I help you today?"',
-      }),
+      })
     );
     session.response.create();
   },

@@ -14,6 +14,7 @@ import {
 import * as deepgram from '@livekit/agents-plugin-deepgram';
 import * as openai from '@livekit/agents-plugin-openai';
 import * as silero from '@livekit/agents-plugin-silero';
+import * as cartesia from '@livekit/agents-plugin-cartesia';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import dotenv from 'dotenv';
@@ -61,7 +62,7 @@ export default defineAgent({
       vad,
       new deepgram.STT(),
       new openai.LLM(),
-      new openai.TTS(),
+      new cartesia.TTS(),
       { chatCtx: initialContext, fncCtx },
     );
     agent.start(ctx.room, participant);

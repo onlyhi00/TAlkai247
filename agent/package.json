@@ -16,11 +16,12 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@livekit/agents": "workspace:*",
-    "@livekit/agents-plugin-deepgram": "workspace:*",
-    "@livekit/agents-plugin-elevenlabs": "workspace:*",
-    "@livekit/agents-plugin-openai": "workspace:*",
-    "@livekit/agents-plugin-silero": "workspace:*",
+    "@livekit/agents": "^0.6.4",
+    "@livekit/agents-plugin-cartesia": "^0.1.1",
+    "@livekit/agents-plugin-deepgram": "^0.5.3",
+    "@livekit/agents-plugin-elevenlabs": "^0.6.1",
+    "@livekit/agents-plugin-openai": "^0.8.1",
+    "@livekit/agents-plugin-silero": "^0.5.3",
     "@livekit/rtc-node": "^0.13.2",
     "dotenv": "^16.4.7",
     "livekit-server-sdk": "^2.9.2",
