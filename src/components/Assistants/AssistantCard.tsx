@@ -163,24 +163,26 @@ export default function AssistantCard({
 
       const room = new Room();
 
-      await room.connect(wsUrl, token, { roomName: roomName });
+      if (accessToken && roomName) {
+        await room.connect(wsUrl, accessToken, { roomName: roomName });
 
-      room.on(RoomEvent.ParticipantConnected, (participant) => {
-        console.log("Participant connected:", participant.identity);
-      });
+        room.on(RoomEvent.ParticipantConnected, (participant) => {
+          console.log("Participant connected:", participant.identity);
+        });
 
-      room.on(RoomEvent.ParticipantDisconnected, (participant) => {
-        console.log("Participant disconnected:", participant.identity);
-      });
+        room.on(RoomEvent.ParticipantDisconnected, (participant) => {
+          console.log("Participant disconnected:", participant.identity);
+        });
 
-      room.on(RoomEvent.ChatMessage, (message, participant) => {
-        console.log("Chat message:", message);
-        console.log("Participant:", participant);
-      });
+        room.on(RoomEvent.ChatMessage, (message, participant) => {
+          console.log("Chat message:", message);
+          console.log("Participant:", participant);
+        });
 
-      setRoom(room);
-      console.log("Room connected", room);
-      setIsInCall(!isInCall);
+        setRoom(room);
+        console.log("Room connected", room);
+        setIsInCall(!isInCall);
+      }
     } else {
       // End call
       setIsInCall(!isInCall);
@@ -1104,7 +1106,7 @@ export default function AssistantCard({
                   </Button>
                 </div>
               </div>
-              
+
               <div className="bg-gray-900/50 rounded-lg p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
                 {isInCall && accessToken && (
                   <LiveKitRoom
