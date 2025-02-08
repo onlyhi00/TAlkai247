@@ -13,9 +13,15 @@ const LiveKit_SECRET = process.env.LIVEKIT_API_SECRET;
 const LiveKit_wsUrl = process.env.LIVEKIT_SERVER_URL;
 
 router.post("/getToken", authenticate, async (req, res) => {
-  const { assistantId } = req.body;
   const participantId = req.user.id;
-  const roomName = `room-${participantId}-${assistantId}`;
+
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const randomString = Array.from(crypto.getRandomValues(new Uint8Array(10)))
+    .map((byte) => characters[byte % characters.length])
+    .join("");
+
+  const roomName = `room-${randomString}`;
 
   try {
     const at = new AccessToken(LiveKit_API, LiveKit_SECRET, {

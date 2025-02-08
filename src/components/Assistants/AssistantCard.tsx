@@ -47,12 +47,13 @@ import { Voice } from "@/components/VoiceLibrary/types";
 import ModelSelectionCard from "@/components/LLM/ModelSelectionCard";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { Room, RoomEvent } from "livekit-client";
+// import LiveKitModal from "@/components/Agent/LiveKitModal";
+import VoiceAssistant from "../Agent/VoiceAssitant";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
   StartAudio,
 } from "@livekit/components-react";
-import { AgentProvider } from "@/hooks/useAgent";
 
 interface Assistant {
   id: string;
@@ -157,8 +158,8 @@ export default function AssistantCard({
 
       const token = data.token;
       const roomName = data.roomName;
-      await setAccessToken(token);
-      await setRoomName(roomName);
+      setAccessToken(token);
+      setRoomName(roomName);
 
       const room = new Room();
 
@@ -1103,8 +1104,20 @@ export default function AssistantCard({
                   </Button>
                 </div>
               </div>
-
+              
               <div className="bg-gray-900/50 rounded-lg p-4 min-h-[300px] max-h-[400px] overflow-y-auto">
+                {isInCall && accessToken && (
+                  <LiveKitRoom
+                    serverUrl={wsUrl}
+                    token={accessToken || ""}
+                    connect={true}
+                    audio={true}
+                    video={false}
+                  >
+                    <RoomAudioRenderer />
+                    <VoiceAssistant />
+                  </LiveKitRoom>
+                )}
                 {transcript.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[300px] text-gray-400">
                     <Mic className="h-12 w-12 mb-4 opacity-50" />
@@ -1115,52 +1128,32 @@ export default function AssistantCard({
                     </p>
                   </div>
                 ) : (
-
-                  // TODO: 
-                  isInCall && (
-                    <>
-                      <LiveKitRoom
-                        serverUrl={wsUrl}
-                        token={accessToken || ""}
-                        connect={true}
-                        audio={true}
-                        options={{
-                          publishDefaults: { stopMicTrackOnMute: true },
-                        }}
+                  <div className="space-y-4">
+                    {transcript.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg ${
+                          message.role === "user"
+                            ? "bg-blue-500/20 ml-12"
+                            : "bg-gray-700/50 mr-12"
+                        }`}
                       >
-                        <AgentProvider>
-                          <RoomAudioRenderer />
-                          <StartAudio label="Click to allow audio playback." />
-                        </AgentProvider>
-                      </LiveKitRoom>
-                      <div className="space-y-4">
-                        {transcript.map((message, index) => (
+                        <div className="flex items-center gap-2 mb-2">
                           <div
-                            key={index}
-                            className={`p-4 rounded-lg ${
+                            className={`w-2 h-2 rounded-full ${
                               message.role === "user"
-                                ? "bg-blue-500/20 ml-12"
-                                : "bg-gray-700/50 mr-12"
+                                ? "bg-blue-400"
+                                : "bg-green-400"
                             }`}
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <div
-                                className={`w-2 h-2 rounded-full ${
-                                  message.role === "user"
-                                    ? "bg-blue-400"
-                                    : "bg-green-400"
-                                }`}
-                              />
-                              <span className="text-sm text-gray-400">
-                                {message.role === "user" ? "You" : "Assistant"}
-                              </span>
-                            </div>
-                            <p className="text-white">{message.content}</p>
-                          </div>
-                        ))}
+                          />
+                          <span className="text-sm text-gray-400">
+                            {message.role === "user" ? "You" : "Assistant"}
+                          </span>
+                        </div>
+                        <p className="text-white">{message.content}</p>
                       </div>
-                    </>
-                  )
+                    ))}
+                  </div>
                 )}
               </div>
 

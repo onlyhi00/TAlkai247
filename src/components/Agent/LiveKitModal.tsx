@@ -5,6 +5,7 @@ import {
   StartAudio,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
+import VoiceAssistant from "./VoiceAssitant";
 
 const LiveKitModal = (serverUrl: string, token: string) => {
   console.log("serverUrl", serverUrl);
@@ -18,8 +19,15 @@ const LiveKitModal = (serverUrl: string, token: string) => {
         audio={true}
         video={false}
       >
-        <RoomAudioRenderer />
+        <div className="flex flex-col h-full">
+          <p>serverUrl: {serverUrl}</p>
+          <p>token: {token}</p>
+          <RoomAudioRenderer />
+          <VoiceAssistant />
+        </div>
+
       </LiveKitRoom>
+
     </>
   );
 };
